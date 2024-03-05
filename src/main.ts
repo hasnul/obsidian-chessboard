@@ -59,31 +59,41 @@ export default class ObsidianChess extends Plugin {
       el: HTMLElement,
       ctx: MarkdownPostProcessorContext
     ) => {
-      const parsedCode = ObsidianChess.parseCode(source);
-      this.setting.orientation = parsedCode.orientation;
-      const chessboard = SVGChessboard.fromFEN(parsedCode.fen, this.setting);
-      for (let annotation of parsedCode.annotations) {
-        if (annotation.type === "arrow") {
-          chessboard.addArrow(
-            annotation.start,
-            annotation.end,
-            annotation.color
-          );
-        }
-        if (annotation.type === "highlight") {
-          chessboard.highlight(annotation.square, annotation.color);
-        }
-      }
+      const lines = source.split('\n');
+      const padding = "5px";
+      const display = "inline-block";
 
-      const xmlns = "http://www.w3.org/2000/svg";
-      const boardWidthPx = this.setting.boardWidthPx;
-      const block = document.createElementNS(xmlns, "svg");
-      block.setAttributeNS(null, "viewBox", `0 0 320 320`);
-      block.setAttributeNS(null, "width", String(boardWidthPx));
-      block.setAttributeNS(null, "height", String(boardWidthPx));
-      block.appendChild(chessboard.draw());
-      block.style.display = "block";
-      el.appendChild(block);
+      for (const line of lines) {
+        const parsedCode = ObsidianChess.parseCode(line);
+        // this.setting.orientation = parsedCode.orientation;
+        const turn = parsedCode.fen.split(' ')[1]
+        this.setting.orientation = turn === 'w' ? "white" : "black";
+        const chessboard = SVGChessboard.fromFEN(parsedCode.fen, this.setting);
+        for (let annotation of parsedCode.annotations) {
+          if (annotation.type === "arrow") {
+            chessboard.addArrow(
+              annotation.start,
+              annotation.end,
+              annotation.color
+            );
+          }
+          if (annotation.type === "highlight") {
+            chessboard.highlight(annotation.square, annotation.color);
+          }
+        }
+
+        const xmlns = "http://www.w3.org/2000/svg";
+        const boardWidthPx = this.setting.boardWidthPx;
+        const block = document.createElementNS(xmlns, "svg");
+        block.setAttributeNS(null, "viewBox", `0 0 320 320`);
+        block.setAttributeNS(null, "width", String(boardWidthPx));
+        block.setAttributeNS(null, "height", String(boardWidthPx));
+        block.appendChild(chessboard.draw());
+        block.style.display = display;
+        block.style.padding = padding;
+
+        el.appendChild(block);
+      }
     };
   }
 
